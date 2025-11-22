@@ -41,19 +41,18 @@ classdef CrossSection < handle
                     curRect = obj.layers{layerNum, rectNum};
 
                     if ~isempty(curRect) % since layers may contain empty elements this checks that a rectangle exists
+                        curRect = curRect.copyRect();
 
                         % change width and height to specified ones so that
                         % cross section can vary linearly along depth
-                        varW = params(absRectNum * 2); 
-                        varH = params(absRectNum * 2 - 1);
+                        varH = params(absRectNum * 2);
+                        varW = params(absRectNum * 2 - 1);
                         if varW ~= -1
                             curRect.w = varW; 
                         end
-    
                         if varH ~= -1
                             curRect.h = varH;
                         end
-
                         if curRect.isXRel()
                             % disp("curRect = "); disp(curRect);
                             % disp("curRect.xRefRect = "); disp(curRect.xRefRect);
@@ -158,9 +157,10 @@ classdef CrossSection < handle
             %iterating through rows and columns going from left to right,
             %top to bottom, will yield glue tabs from bottom to top, left
             %to right.
-            glueLayers = {obj.glueTabs{1}};
+            glueLayers = {};
+            glueLayers{1, 1} = obj.glueTabs{1};
             for i = 2:length(obj.glueTabs)
-                if obj.glueTabs{i}.y == glueLayers{i-1}.y
+                if obj.glueTabs{i}.y == obj.glueTabs{i-1}.y
                     glueLayers{end, end + 1} = obj.glueTabs{i};
                 else 
                     glueLayers{end + 1, 1} = obj.glueTabs{i};

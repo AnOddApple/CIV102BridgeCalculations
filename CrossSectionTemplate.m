@@ -35,7 +35,9 @@ classdef CrossSectionTemplate < handle
             % xRefFunc) where xRefRect is the rectangle number of the
             % reference rectangle and xRefFunc is the function that
             % calculates rect's x coord based on xRefRect
-            % xRefFunc SHOULD NOT HAVE ANY CONSTANTS IN IT
+            % xRefFunc TRY NOT TO HAVE ANY CONSTANTS IN IT. If you do have
+            % constants, be careful that it won't cause unindended
+            % behaviour as other dimensions vary along length of beam.
 
             % or can call as attachRectangleBeside(rect, constX)
             % constX: the static x coordinate of the center of the rectangle
@@ -60,7 +62,9 @@ classdef CrossSectionTemplate < handle
             % xRefFunc) where xRefRect is the rectangle number of the
             % reference rectangle and xRefFunc is the function that
             % calculates rect's x coord based on xRefRect
-            % xRefFunc SHOULD NOT HAVE ANY CONSTANTS IN IT
+            % xRefFunc TRY NOT TO HAVE ANY CONSTANTS IN IT. If you do have
+            % constants, be careful that it won't cause unindended
+            % behaviour as other dimensions vary along length of beam.
 
             % or can call as attachRectangleAbove(rect, constX)
             % constX: the static x coordinate of the center of the rectangle
