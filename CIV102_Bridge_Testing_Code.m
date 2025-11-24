@@ -1,3 +1,7 @@
+% Author: Grant Liang
+% Nov 23, 2025
+% CIV102 Bridge Final Project
+
 clear; close all;
 %% 0. Initialize Parameters
 
@@ -8,12 +12,16 @@ x = linspace(0, L, n+1); % x-axis
 x_train = [52 228 392 568 732 908]; % Train Load Locations
 train_length = 960; % Total length of train 
 
-% LOAD CASE 2 
-% lightest_freight_car_weight = 170;
-% P_train = [1.1 1.1 1 1 1.38 1.38] * lightest_freight_car_weight/2;
 
 % LOAD CASE 1
-P_train = [1 1 1 1 1 1] * 400/6;
+% P_train = [1 1 1 1 1 1] * 400/6;
+
+% LOAD CASE 2 
+lightest_freight_car_weight = 135;
+P_train = [1 1 1 1 1.35 1.35] * lightest_freight_car_weight/2;
+
+
+
 P = sum(P_train); % Total weight of train [N]
     
 n_train = 1200; % num of train locations
@@ -51,9 +59,19 @@ for i = 1:n_train
 end
 SFD = max(abs(SFDi)); % SFD envelope
 BMD = max(BMDi); % BMD envelope
-figure
-plot(x, BMD)
+figure;
 plot(x, SFD)
+title("Shear Force Envelope")
+ylabel("Force (N)")
+xlabel("Location on bridge (mm)")
+grid on;
+plot(x, BMD)
+title("Bending Moment Envelope")
+ylabel("Moment (Nmm)")
+xlabel("Location on bridge (mm)")
+grid on;
+
+
 
 %% 2. Define Bridge Parameters
 
@@ -111,27 +129,34 @@ plot(x, SFD)
 % %         800 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1;...
 % %         L   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1];
 % 
+cs_template = CrossSectionTemplate(Rectangle(65 + 1.27, 1.27));
+cs_template.attachRectangleAbove(Rectangle(1.27, 73.65), 1, @(curRect, refRect) refRect.x);
+cs_template.attachRectangleBeside(Rectangle(1.27, 73.65), 1, @(curRect, refRect) refRect.x + refRect.w - curRect.w);
+cs_template.attachRectangleAbove(Rectangle(1.27 + 10, 1.27), 2, @(curRect, refRect) refRect.x);
+cs_template.attachRectangleBeside(Rectangle(1.27 + 10, 1.27), 3, @(curRect, refRect) refRect.x + refRect.w - curRect.w);
+cs_template.attachRectangleAbove(Rectangle(104, 1.27*3), 0);
+cs_template.attachGlue(GlueLine(9.27), 4, @(glueLine, refRect) refRect.x, ...   
+                                        @(glueLine, refRect) refRect.y + refRect.h, ...
+                                        @(glueLine, refRect) refRect.w);
+cs_template.attachGlue(GlueLine(9.27), 5, @(glueLine, refRect) refRect.x, ...
+                                        @(glueLine, refRect) refRect.y + refRect.h, ...
+                                        @(glueLine, refRect) refRect.w);
 
-cs_template = CrossSectionTemplate(Rectangle(80, 1.27)); cs_template.attachRectangleAbove(Rectangle(1.27, 75 - 1.27 * 2), 1, @(curRect, refRect) refRect.x);
-cs_template.attachRectangleBeside(Rectangle(1.27, 75 - 1.27 * 2), 1, @(curRect, refRect) refRect.x + refRect.w - curRect.w);
-cs_template.attachRectangleAbove(Rectangle(1.27 + 5, 1.27), 2, @(curRect, refRect) refRect.x);
-cs_template.attachRectangleBeside(Rectangle(1.27 + 5, 1.27), 3, @(curRect, refRect) refRect.x + refRect.w - curRect.w);
-cs_template.attachRectangleAbove(Rectangle(100, 1.27), 0);
-cs_template.attachGlue(GlueLine(6.27), 4, @(glueLine, refRect) refRect.x, ...
-                                          @(glueLine, refRect) refRect.y + refRect.h, ...
-                                          @(glueLine, refRect) glueLine.L);
-cs_template.attachGlue(GlueLine(6.27), 5, @(glueLine, refRect) refRect.x, ...
-                                          @(glueLine, refRect) refRect.y + refRect.h, ...
-                                          @(glueLine, refRect) glueLine.L);
 
 cs_template.setBucklingRectangleHori([6], [2, 3]);
+diaphragm_locs = [180 390 600 810 1020]
 
-param =[0   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1;...
-        400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1;...    
-        800 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1;...
-        L   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1];
+param =[
+      0    -1 -1 -1 -1          -1 -1       -1     -1  -1     -1 -1 -1
+      399  -1 -1 -1 -1          -1 -1 -1     -1  -1     -1 -1 -1;...
+      400  -1 -1 -1 -1          -1 -1 33.135 -1  33.135 -1 -1 -1;...  
+      800  -1 -1 -1 -1         -1 -1  33.135 -1  33.135 -1 -1 -1;...
+      801  -1 -1 -1 -1         -1 -1  -1     -1  -1     -1 -1 -1;...
+      L    -1 -1 -1 -1          -1 -1       -1     -1  -1     -1 -1 -1];
 
-diaphragm_locs = [300 600 900]; %locations of diaphragms along the width of the beam in mm
+
+
+
 
 % NO MORE INPUTS REQUIRED
 
@@ -320,6 +345,7 @@ Smax_tens = 30; % MPa
 Smax_comp = 6; % MPa
 T_max = 4; % MPa
 T_gmax = 2; % MPa
+
 Smax_buck1 = cellfun(@(cs) cs.calcSCritCase1(E, mu), cs);
 Smax_buck2 = cellfun(@(cs) cs.calcSCritCase2(E, mu), cs);
 
@@ -332,7 +358,7 @@ end
 % add bounds for the purposes of calculating number of intervals and size
 diaphragm_locs = [0,diaphragm_locs,1201];
 % set up buckle vector for augmenting
-Tmax_buck = NaN(1,1201); %this is basically case 4 of thin plate buckling
+Tmax_buck = NaN(1,1201); % case 4 of thin plate buckling
 % for each interval, edit Tmax_buck to have the lowest buckling stress over the interval
 for num_interval = 1:length(diff(diaphragm_locs))
     interval_start = diaphragm_locs(num_interval) + 1;
@@ -341,18 +367,18 @@ for num_interval = 1:length(diff(diaphragm_locs))
     a = interval_end - interval_start;
     % largest height in the interval to calculate the lowest shear buckling stress
     h_max = max(ytop(interval_start:interval_end));
-    Tmax_buck(interval_start:interval_end) = 5*pi^2*(4000)/(12*(1-(0.2)^2))*((1.27 / a).^2 + (1.27 / h_max).^2);
+    Tmax_buck(interval_start:interval_end) = 5*pi^2*(4000)/(12*(1-(0.2)^2))*((1.27 / a).^2 + (1.27 / h_max).^2)
 end
 %%
 %% 6. FOS
-FOS_tens = min(Smax_tens./S_tens)
-FOS_comp = min(Smax_comp./abs(S_comp))
-FOS_shear = min(T_max./abs(T_cent))
-FOS_glue = min(T_gmax./abs(T_glue))
-FOS_buck1 = min(Smax_buck1./abs(S_comp))
-FOS_buck2 = min(Smax_buck2./abs(S_comp))
-FOS_buck3 = min(Smax_buck3./abs(S_comp))
-FOS_buckV = min(Tmax_buck./abs(T_cent))
+FOS_tens = min(Smax_tens./S_tens);
+FOS_comp = min(Smax_comp./abs(S_comp));
+FOS_shear = min(T_max./abs(T_cent));
+FOS_glue = min(T_gmax./abs(T_glue));
+FOS_buck1 = min(Smax_buck1./abs(S_comp));
+FOS_buck2 = min(Smax_buck2./abs(S_comp));
+FOS_buck3 = min(Smax_buck3./abs(S_comp));
+FOS_buckV = min(Tmax_buck'./abs(T_cent));
 %% 7. Min FOS and the failure load Pfail
 
 minFOS = min([FOS_tens, FOS_comp, FOS_shear, FOS_glue, FOS_buck1, FOS_buck2, FOS_buck3, FOS_buckV]);
@@ -450,11 +476,25 @@ plot([0, L], [0, 0], 'k', 'LineWidth', 2)
 legend('Matboard Buckling Failure Webs')
 xlabel('Distance along bridge (mm)')
 ylabel('Bending Moment (Nmm)')
-% 
-% max_shear = max(SFD)
-% max_moment = max(BMD)
-% y_bar = ybar(1)
-% I_ = I(1)
+
+fprintf('max_shear = %.2f N\n', max(SFD));
+fprintf('max_moment = %.2f Nmm\n', max(BMD));
+fprintf('y_bar = %.2f mm\n', ybar(1));
+fprintf('I = %.2f mm^4\n\n', I(1));
+
+fprintf('maxTopStress (compression due to moment) = %.2f MPa\n', min(S_top));
+fprintf('maxBotStress (tension due to moment) = %.2f MPa\n', max(S_bot));
+
+fprintf('Qcent = %.2f mm^3\n', Qcent(1));
+fprintf('maxShearStressAtCentroid = %.2f MPa\n', T_cent(1));
+fprintf('Qglue = %.2f mm^3\n', Qglue(1, 1));
+fprintf('maxShearStressAtGlue = %.2f MPa\n', T_glue(1));
+
+fprintf('critStressBucklingCase1 = %.2f MPa\n', Smax_buck1(1));
+fprintf('critStressBucklingCase2 = %.2f MPa\n', Smax_buck2(1));
+fprintf('critStressBucklingCase3 = %.2f MPa\n', Smax_buck3(1));
+fprintf('critShearStressBucklingCase4 = %.2f MPa\n', Tmax_buck(1));
+
 FOS_tens
 FOS_comp
 FOS_shear
@@ -462,19 +502,27 @@ FOS_glue
 FOS_buck1
 FOS_buck2
 FOS_buck3
-FOS_buckV_min = min(FOS_buckV)
+FOS_buckV = min(FOS_buckV)
 
+minFOS
+fprintf('Failure Load = %.2f N\n', Pf);
 volume = sum(cellfun(@(cs) cs.getTotalArea(), cs)) + cs{1}.getTotalArea()*60 + 100*100*size(diaphragm_locs, 1);
 matboard_volume_provided = 813*1016*1.27;
 matboard_density = 750/matboard_volume_provided; % in grams / mm^3
 mass = volume * matboard_density
 strength_to_weight_ratio = Pf/mass
-minFOS
-Pf
-% figure;
-% plot(x, Smax_comp./abs(S_comp))
-% ylim([0 5])
-% title("FOS Compression")
-
-% figure;
-% plot(x, SFD)
+%%
+figure; hold on;
+plot(x, Smax_comp./abs(S_comp), "k", "LineWidth", 2)
+plot(x, Smax_tens./S_tens, ":", "LineWidth", 2)
+plot(x, T_max./abs(T_cent), "-")
+plot(x, T_gmax./abs(T_glue), "-")
+plot(x, Smax_buck1./abs(S_comp), ":", "LineWidth", 2)
+plot(x, Smax_buck2./abs(S_comp), "--")
+plot(x, Smax_buck3./abs(S_comp), "--")
+plot(x, Tmax_buck'./abs(T_cent), ":", "LineWidth", 2)
+ylim([0 50])
+title("Final Design Load Case 1 FOS ")
+ylabel("FOS")
+xlabel("Location on bridge (mm)")
+legend("Compression FOS", "Tension FOS", "Centroidal Shear FOS", "Glue Shear FOS", "Buck1 FOS", "Buck2 FOS", "Buck3 FOS", "Shear Buckling FOS")
